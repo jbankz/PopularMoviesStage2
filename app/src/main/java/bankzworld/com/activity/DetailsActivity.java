@@ -82,7 +82,7 @@ public class DetailsActivity extends AppCompatActivity {
         mDate.setText(model.getRelease_date());
 
         Picasso.with(getApplicationContext())
-                .load("http://image.tmdb.org/t/p/w500/" + model.getBackdrop_path())
+                .load("http://image.tmdb.org/t/p/w600/" + model.getBackdrop_path())
                 .into(mBackdrop, new Callback() {
                     @Override
                     public void onSuccess() {
