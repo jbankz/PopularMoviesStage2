@@ -4,12 +4,16 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 
 import bankzworld.com.R;
@@ -17,12 +21,17 @@ import bankzworld.com.adapter.FavouriteAdapter;
 import bankzworld.com.db.FavContract;
 import bankzworld.com.db.FavDbHelper;
 
-public class Favourite extends AppCompatActivity implements FavouriteAdapter.clickListener {
+public class Favourite extends AppCompatActivity implements FavouriteAdapter.clickListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final String TAG = "Favourite";
 
     private RecyclerView mRecyclerView;
     private LinearLayoutManager layoutManager;
     private static SQLiteDatabase sqLiteDatabase;
     private Cursor cursor;
+    private static final int MOVIE_LOADER = 10;
+    private FavouriteAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,13 +47,20 @@ public class Favourite extends AppCompatActivity implements FavouriteAdapter.cli
 
         cursor = getFavMovie();
 
+        getSupportLoaderManager().initLoader(MOVIE_LOADER, null, this);
+
         mRecyclerView = (RecyclerView) findViewById(R.id.fav_rv);
         layoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setAdapter(new FavouriteAdapter(cursor, this));
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSupportLoaderManager().restartLoader(MOVIE_LOADER, null, this);
     }
 
     private Cursor getFavMovie() {
@@ -80,5 +96,55 @@ public class Favourite extends AppCompatActivity implements FavouriteAdapter.cli
             intent.putExtra("id", id);
             startActivity(intent);
         }
+    }
+
+    @Override
+    public Loader onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Cursor>(this) {
+
+            Cursor mTaskData = null;
+
+            @Override
+            protected void onStartLoading() {
+                super.onStartLoading();
+
+                if (mTaskData != null) {
+                    deliverResult(mTaskData);
+                } else {
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public Cursor loadInBackground() {
+
+                try {
+                    return getContentResolver().query(FavContract.FavEntry.CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            null);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to asynchronously load data ");
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            public void deliverResult(Cursor data) {
+                mTaskData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader loader, Cursor data) {
+        mRecyclerView.setAdapter(new FavouriteAdapter(data, this));
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader) {
+
     }
 }
