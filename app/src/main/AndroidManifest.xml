@@ -53,6 +53,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="bankzworld.com.activity.MainActivity" />
         </activity>
+
+        <provider
+            android:authorities="bankzworld.com"
+            android:name="bankzworld.com.db.MovieContentProvider"
+            android:exported="false" />
+
     </application>
 
 </manifest>

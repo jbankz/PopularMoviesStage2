@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -36,6 +38,7 @@ import bankzworld.com.utilities.RetrofitUtil;
 import retrofit2.Call;
 import retrofit2.Response;
 
+import static bankzworld.com.db.FavContract.FavEntry.CONTENT_URI;
 import static bankzworld.com.db.FavContract.FavEntry.FAVOURITE_BACKDROP_PATH;
 import static bankzworld.com.db.FavContract.FavEntry.FAVOURITE_ID;
 import static bankzworld.com.db.FavContract.FavEntry.FAVOURITE_OVERVIEW;
@@ -71,9 +74,7 @@ public class DetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
         getConfig();
-
 
         ctb.setTitle(model.getTitle());
         mOverView.setText(model.getOverview());
@@ -202,7 +203,7 @@ public class DetailsActivity extends AppCompatActivity {
         }
     }
 
-    private long addFav(String id, String title, String poster_path,
+    private void addFav(String id, String title, String poster_path,
                         String backdrop_path, String overview,
                         String release_date,
                         String vote_average) {
@@ -215,7 +216,8 @@ public class DetailsActivity extends AppCompatActivity {
         contentValues.put(FAVOURITE_RELEASE_DATE, release_date);
         contentValues.put(FAVOURITE_VOTE_AVERAGE, vote_average);
 
-        return sqLiteDatabase.insert(FAVOURITE_TABLE_NAME, null, contentValues);
+        getContentResolver().insert(CONTENT_URI, contentValues);
+
     }
 
     private boolean isFav(String id) {
